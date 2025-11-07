@@ -3,7 +3,14 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - Trap
+  - Key1
+  - Coin1
+  - Coin2
+  - Key2
+  - Key3
+  - Goal
   layers:
   - Default
   - TransparentFX
