@@ -1,52 +1,98 @@
+using System.Collections;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField]Player player;
-    [SerializeField]Enemy enemy;
+    [SerializeField] private LogManager logManager;
+    [SerializeField] private Player player;
+    [SerializeField] private Enemy enemy;
 
-    public string turn;                //ターン
-    public bool judgeingEnd;           //ジャッジの終了を判定
-    private bool Win;                   //勝利の判定
+    public string turn;             //ターン
+    public bool judgeingEnd;        //ジャッジの終了を判定
+    private bool Win;               //勝敗の判定
 
-    private void Start()
+    public bool playerTurnEnd;      //プレイヤーターンの終了判定
+    public bool enemyTurnEnd;       //エネミーターンの終了判定
+
+    private void Awake()
     {
+        playerTurnEnd = false;
+        enemyTurnEnd = false;
+        logManager.AddLog("自分のターン!");
         turn = "Player";
-        judgeingEnd = true;
+        judgeingEnd = false;
     }
 
     private void Update()
     {
         PlayJudge();
+        WinCheck();
     }
 
     /// <summary>
     /// 試合の勝敗処理
     /// </summary>
-    private void PlayJudge()
+    IEnumerator PlayJudge()
     {
-        if (judgeingEnd) return;
+        yield return new WaitForSeconds(2f);
 
+        //プレイヤーとエネミーの選んだ武器の番号を取得
         int playerWeapon = player.GetWeaponIndex();
         int enemyWeapon = enemy.GetWeaponIndex();
 
-        if (playerWeapon == -1 || enemyWeapon == -1)
-            return;
-
-        int result = (enemyWeapon - playerWeapon + 3) % 3;
-
-        switch (result)
+        //両者のターンが終了しているなら勝敗判定を行う
+        if (playerTurnEnd && enemyTurnEnd)
         {
-            case 0:
-                Debug.Log("相殺");
-                break;
-            case 1:
-                Debug.Log("勝ち");
-                break;
-            case 2:
-                Debug.Log("負け");
-                break;
+            //勝敗判定の計算
+            int result = (playerWeapon - enemyWeapon + 3) % 3;
+
+            //勝敗判定の表示
+            switch (result)
+            {
+                case 0:
+                    logManager.AddLog("相殺");
+                    StartCoroutine(Reset());
+                    break;
+                case 1:
+                    logManager.AddLog("勝ち");
+                    Win = true;
+                    break;
+                case 2:
+                    logManager.AddLog("負け");
+                    Win = false;
+                    break;
+            }
         }
-        judgeingEnd = true;
+    }
+
+    /// <summary>
+    /// 勝敗判定
+    /// </summary>
+    private void WinCheck()
+    {
+        if(playerTurnEnd && enemyTurnEnd)
+        {
+            StartCoroutine(PlayJudge());
+
+            if (Win)
+            {
+                logManager.AddLog("プレイヤーの勝ち!");
+                StartCoroutine(Reset());
+            }
+            else
+            {
+                logManager.AddLog("エネミーの勝ち!");
+                StartCoroutine(Reset());
+            }
+        }
+    }
+
+    /// <summary>
+    /// 3秒後にゲームをリセットする
+    /// </summary>
+    IEnumerator Reset()
+    {
+        yield return new WaitForSeconds(3f);
+        playerTurnEnd = false;
     }
 }

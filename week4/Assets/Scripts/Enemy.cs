@@ -1,11 +1,14 @@
+using System.Collections;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    [SerializeField] LogManager logManager;
     [SerializeField] GameManager gameManager;
 
-    [SerializeField] public GameObject[] enemyWeapons;       //武器の配列
-    private GameObject getWeapon;       //選んだ武器を取得  
+    [SerializeField] public GameObject[] enemyWeapons;      //武器の配列
+    private GameObject getWeapon;                           //選んだ武器を取得
+    private bool selected = false;                          //武器が選ばれたかどうか
 
     private void Start()
     {
@@ -28,17 +31,19 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// // エネミーが武器を選択するときの処理
+    /// </summary>
     private void EnemySelect()
     {
-        if (gameManager.turn == "Enemy")
+        if (gameManager.turn == "Enemy" && !gameManager.enemyTurnEnd && !selected)
         {
-            Debug.Log("エネミーのターン");
+            selected = true;
+
             int randomIndex = Random.Range(0, enemyWeapons.Length);
             SetWeapon(randomIndex);
             getWeapon = enemyWeapons[randomIndex];
-            Debug.Log(getWeapon.name);
-            gameManager.turn = "Player";
-            gameManager.judgeingEnd = false;
+            StartCoroutine(TurnEnd());
         }
     }
 
@@ -61,5 +66,16 @@ public class Enemy : MonoBehaviour
 
         //見つからなかった場合は-1
         return -1;
+    }
+
+    /// <summary>
+    /// 2秒後に勝敗判定へ移行する
+    /// </summary>
+    IEnumerator TurnEnd()
+    {
+        yield return new WaitForSeconds(2f);
+        logManager.AddLog("相手は" + getWeapon.name + "を選んだ");
+        gameManager.enemyTurnEnd = true;
+        selected = false;
     }
 }

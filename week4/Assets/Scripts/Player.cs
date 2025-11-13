@@ -1,16 +1,22 @@
+using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-
+    [SerializeField] LogManager logManager;
     [SerializeField] GameManager gameManager;
 
-    [SerializeField] public GameObject[] weapons;        //武器の配列
+    [SerializeField] public GameObject[] weapons;       //武器の配列
     private GameObject getWeapon;                       //選んだ武器を取得  
     public int weaponIndex;                             //武器の番号
+    private bool selected;                              //武器が選ばれたかどうか
+    private bool showLog;                               //ログが表示されたかどうか
 
-    private void Start()
+    private void Awake()
     {
+        selected = false;
+        showLog = false;
     }
 
     private void Update()
@@ -35,52 +41,81 @@ public class Player : MonoBehaviour
     /// </summary>
     void PlayerSelect()
     {
-        if (gameManager.turn == "Player" && gameManager.judgeingEnd)
+        if (gameManager.turn == "Player" && !gameManager.playerTurnEnd)
         {
-            Debug.Log("プレイヤーのターン");
+            if (!showLog)
+            {
+                
+                StartCoroutine(Log());
+            }
+            
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
-                Debug.Log("弓");
-                SetWeapon(0);
-                getWeapon = weapons[0];
-                gameManager.turn = "Enemy";
+                SelectWeapon(0, "弓");
             }
             if (Input.GetKeyDown(KeyCode.Alpha2))
             {
-                Debug.Log("槍");
-                SetWeapon(1);
-                getWeapon = weapons[1];
-                gameManager.turn = "Enemy";
+                SelectWeapon(1, "槍");
             }
             if (Input.GetKeyDown(KeyCode.Alpha3))
             {
-                Debug.Log("剣");
-                SetWeapon(2);
-                getWeapon = weapons[2];
-                gameManager.turn = "Enemy";
+                SelectWeapon(2, "剣");
             }
         }
+        else
+        {
+            showLog = false;
+        }
+    }
+
+    /// <summary>
+    /// 武器の選択後の処理
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="weaponName"></param>
+    public void  SelectWeapon(int index, string weaponName)
+    {
+       selected = true;
+        SetWeapon(index);
+        getWeapon = weapons[index];
+        logManager.AddLog(weaponName + "を選んだ");
+        StartCoroutine(TurnEnd());
     }
 
 
     /// <summary>
-    /// 選ばれた武器の番号を取得
+    /// 選択した武器の番号を取得
     /// </summary>
-    /// <returns>
-    /// 武器の番号(0:弓、1:槍、2:剣)
-    ///どの武器でもない場合は-1を返す
-    /// </returns>
+    /// <returns></returns>
     public int GetWeaponIndex()
     {
         for (int i = 0; i < weapons.Length; i++)
         {
             if (weapons[i].activeSelf)
             {
-                return i;
-
+                return i;  // 現在選ばれている武器番号を返す
             }
         }
-        //見つからなかった場合は-1
-        return -1;
+        return -1; // どの武器も選ばれていないときは-1を返す
+    }
+
+    /// <summary>
+    /// 2秒後にエネミーのターンに変更
+    /// </summary>
+    IEnumerator TurnEnd()
+    {
+        yield return new WaitForSeconds(2f);
+        gameManager.playerTurnEnd = true;
+        gameManager.enemyTurnEnd = false;
+        selected = false;
+        gameManager.turn = "Enemy";
+        logManager.AddLog("相手のターン!");
+    }
+
+    IEnumerator Log()
+    {
+        yield return new WaitForSeconds(1.0f);
+        logManager.AddLog("数字を押して武器を選んでください。(1:弓、2:槍、3:剣)");
+        showLog = true;
     }
 }
