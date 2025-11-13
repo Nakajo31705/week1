@@ -16,11 +16,13 @@ public class LogManager : MonoBehaviour
     /// </summary>
     public void AddLog(string log)
     {
+        Debug.Log("Logí«â¡" + log);
         logs.Enqueue(log);
 
         if(logs.Count > maxLogLines)
         {
-            logs.Dequeue();
+            string remove = logs.Dequeue();
+            Debug.Log("LogçÌèú" + remove);
         }
 
         UpdateLogDisplay();

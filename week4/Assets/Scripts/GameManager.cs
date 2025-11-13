@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     public string turn;             //ターン
     public bool judgeingEnd;        //ジャッジの終了を判定
     private bool Win;               //勝敗の判定
+    private bool Draw;              //引き分け判定
 
     public bool playerTurnEnd;      //プレイヤーターンの終了判定
     public bool enemyTurnEnd;       //エネミーターンの終了判定
@@ -18,7 +19,6 @@ public class GameManager : MonoBehaviour
     {
         playerTurnEnd = false;
         enemyTurnEnd = false;
-        logManager.AddLog("自分のターン!");
         turn = "Player";
         judgeingEnd = false;
     }
@@ -32,10 +32,8 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 試合の勝敗処理
     /// </summary>
-    IEnumerator PlayJudge()
+    private void  PlayJudge()
     {
-        yield return new WaitForSeconds(2f);
-
         //プレイヤーとエネミーの選んだ武器の番号を取得
         int playerWeapon = player.GetWeaponIndex();
         int enemyWeapon = enemy.GetWeaponIndex();
@@ -51,7 +49,7 @@ public class GameManager : MonoBehaviour
             {
                 case 0:
                     logManager.AddLog("相殺");
-                    StartCoroutine(Reset());
+                    Draw = true;
                     break;
                 case 1:
                     logManager.AddLog("勝ち");
@@ -62,19 +60,24 @@ public class GameManager : MonoBehaviour
                     Win = false;
                     break;
             }
+            StartCoroutine(WinCheck());
         }
     }
 
     /// <summary>
     /// 勝敗判定
     /// </summary>
-    private void WinCheck()
+    IEnumerator WinCheck()
     {
-        if(playerTurnEnd && enemyTurnEnd)
-        {
-            StartCoroutine(PlayJudge());
+        yield return new WaitForSeconds(2f);
 
-            if (Win)
+        if (playerTurnEnd && enemyTurnEnd && !judgeingEnd)
+        {
+            if (Draw)
+            {
+                StartCoroutine(Reset());
+            }
+            else if (Win)
             {
                 logManager.AddLog("プレイヤーの勝ち!");
                 StartCoroutine(Reset());
@@ -84,6 +87,7 @@ public class GameManager : MonoBehaviour
                 logManager.AddLog("エネミーの勝ち!");
                 StartCoroutine(Reset());
             }
+            judgeingEnd = true;
         }
     }
 
@@ -94,5 +98,8 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(3f);
         playerTurnEnd = false;
+        turn = "Player";
+        Draw = false;
+        judgeingEnd = false;
     }
 }

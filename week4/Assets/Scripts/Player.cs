@@ -21,7 +21,10 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        PlayerSelect();
+        if (gameManager.turn == "Player" && !gameManager.playerTurnEnd)
+        {
+            PlayerSelect();
+        }           
     }
 
     /// <summary>
@@ -41,14 +44,15 @@ public class Player : MonoBehaviour
     /// </summary>
     void PlayerSelect()
     {
-        if (gameManager.turn == "Player" && !gameManager.playerTurnEnd)
+        if (!showLog)
         {
-            if (!showLog)
-            {
-                
-                StartCoroutine(Log());
-            }
-            
+            logManager.AddLog("自分のターン");
+            StopCoroutine(nameof(Log));
+            StartCoroutine(Log());
+        }
+
+        if (showLog)
+        {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
                 SelectWeapon(0, "弓");
@@ -61,10 +65,6 @@ public class Player : MonoBehaviour
             {
                 SelectWeapon(2, "剣");
             }
-        }
-        else
-        {
-            showLog = false;
         }
     }
 
@@ -79,7 +79,7 @@ public class Player : MonoBehaviour
         SetWeapon(index);
         getWeapon = weapons[index];
         logManager.AddLog(weaponName + "を選んだ");
-        StartCoroutine(TurnEnd());
+        TurnEnd();
     }
 
 
@@ -102,12 +102,13 @@ public class Player : MonoBehaviour
     /// <summary>
     /// 2秒後にエネミーのターンに変更
     /// </summary>
-    IEnumerator TurnEnd()
+    private void  TurnEnd()
     {
-        yield return new WaitForSeconds(2f);
+        //yield return new WaitForSeconds(2f);
         gameManager.playerTurnEnd = true;
         gameManager.enemyTurnEnd = false;
         selected = false;
+        showLog = false;
         gameManager.turn = "Enemy";
         logManager.AddLog("相手のターン!");
     }
