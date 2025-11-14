@@ -11,7 +11,7 @@ public class Player : MonoBehaviour
     private GameObject getWeapon;                       //選んだ武器を取得  
     public int weaponIndex;                             //武器の番号
     private bool selected;                              //武器が選ばれたかどうか
-    private bool showLog;                               //ログが表示されたかどうか
+    public bool showLog;                                //ログが表示されたかどうか
 
     private void Awake()
     {
@@ -40,13 +40,24 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
+    /// すべての武器を非アクティブにする
+    /// </summary>
+    public void ResetWeapons()
+    {
+        for (int i = 0; i < weapons.Length; i++)
+        {
+            weapons[i].SetActive(false);
+        }
+    }
+
+    /// <summary>
     /// プレイヤーが武器を選択するときの処理
     /// </summary>
     void PlayerSelect()
     {
         if (!showLog)
         {
-            logManager.AddLog("自分のターン");
+            logManager.AddLog("PlayerTurn");
             StopCoroutine(nameof(Log));
             StartCoroutine(Log());
         }
@@ -55,15 +66,15 @@ public class Player : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
-                SelectWeapon(0, "弓");
+                SelectWeapon(0, "Bow");
             }
             if (Input.GetKeyDown(KeyCode.Alpha2))
             {
-                SelectWeapon(1, "槍");
+                SelectWeapon(1, "Spear");
             }
             if (Input.GetKeyDown(KeyCode.Alpha3))
             {
-                SelectWeapon(2, "剣");
+                SelectWeapon(2, "Sword");
             }
         }
     }
@@ -75,13 +86,12 @@ public class Player : MonoBehaviour
     /// <param name="weaponName"></param>
     public void  SelectWeapon(int index, string weaponName)
     {
-       selected = true;
+        selected = true;
         SetWeapon(index);
         getWeapon = weapons[index];
-        logManager.AddLog(weaponName + "を選んだ");
-        TurnEnd();
+        logManager.AddLog(weaponName + "Selected");
+        StartCoroutine(TurnEnd());
     }
-
 
     /// <summary>
     /// 選択した武器の番号を取得
@@ -102,21 +112,23 @@ public class Player : MonoBehaviour
     /// <summary>
     /// 2秒後にエネミーのターンに変更
     /// </summary>
-    private void  TurnEnd()
+    IEnumerator  TurnEnd()
     {
-        //yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(2f);
         gameManager.playerTurnEnd = true;
         gameManager.enemyTurnEnd = false;
         selected = false;
-        showLog = false;
         gameManager.turn = "Enemy";
-        logManager.AddLog("相手のターン!");
+        logManager.AddLog("EnemyTurn!");
     }
 
     IEnumerator Log()
     {
         yield return new WaitForSeconds(1.0f);
-        logManager.AddLog("数字を押して武器を選んでください。(1:弓、2:槍、3:剣)");
+        if (!showLog)
+        {
+            logManager.AddLog("Input key(1:Bow,2:Spear,3:Sword)");
+        }
         showLog = true;
     }
 }

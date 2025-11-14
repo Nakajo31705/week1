@@ -19,13 +19,17 @@ public class GameManager : MonoBehaviour
     {
         playerTurnEnd = false;
         enemyTurnEnd = false;
-        turn = "Player";
         judgeingEnd = false;
+        turn = "Player";
+        
     }
 
     private void Update()
     {
-        PlayJudge();
+        if (!judgeingEnd)
+        {
+            PlayJudge();
+        }
         WinCheck();
     }
 
@@ -48,15 +52,15 @@ public class GameManager : MonoBehaviour
             switch (result)
             {
                 case 0:
-                    logManager.AddLog("相殺");
+                    logManager.AddLog("Draw");
                     Draw = true;
                     break;
                 case 1:
-                    logManager.AddLog("勝ち");
+                    logManager.AddLog("Win");
                     Win = true;
                     break;
                 case 2:
-                    logManager.AddLog("負け");
+                    logManager.AddLog("Lose");
                     Win = false;
                     break;
             }
@@ -73,21 +77,21 @@ public class GameManager : MonoBehaviour
 
         if (playerTurnEnd && enemyTurnEnd && !judgeingEnd)
         {
+            judgeingEnd = true;
             if (Draw)
             {
                 StartCoroutine(Reset());
             }
             else if (Win)
             {
-                logManager.AddLog("プレイヤーの勝ち!");
+                logManager.AddLog("PlayerWIN!");
                 StartCoroutine(Reset());
             }
             else
             {
-                logManager.AddLog("エネミーの勝ち!");
+                logManager.AddLog("EnemyWIN!");
                 StartCoroutine(Reset());
             }
-            judgeingEnd = true;
         }
     }
 
@@ -97,9 +101,12 @@ public class GameManager : MonoBehaviour
     IEnumerator Reset()
     {
         yield return new WaitForSeconds(3f);
+        player.ResetWeapons();
+        enemy.ResetWeapons();
         playerTurnEnd = false;
         turn = "Player";
         Draw = false;
         judgeingEnd = false;
+        player.showLog = false;
     }
 }

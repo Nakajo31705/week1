@@ -43,7 +43,7 @@ public class Enemy : MonoBehaviour
             int randomIndex = Random.Range(0, enemyWeapons.Length);
             SetWeapon(randomIndex);
             getWeapon = enemyWeapons[randomIndex];
-            StartCoroutine(TurnEnd());
+            StartCoroutine(Log());
         }
     }
 
@@ -69,13 +69,30 @@ public class Enemy : MonoBehaviour
     }
 
     /// <summary>
+    /// すべての武器を非アクティブにする
+    /// </summary>
+    public void ResetWeapons()
+    {
+        for (int i = 0; i < enemyWeapons.Length; i++)
+        {
+            enemyWeapons[i].SetActive(false);
+        }
+    }
+
+    /// <summary>
     /// 2秒後に勝敗判定へ移行する
     /// </summary>
     IEnumerator TurnEnd()
     {
         yield return new WaitForSeconds(2f);
-        logManager.AddLog("相手は" + getWeapon.name + "を選んだ");
         gameManager.enemyTurnEnd = true;
         selected = false;
+    }
+
+    IEnumerator Log()
+    {
+        yield return new WaitForSeconds(2.0f);
+        logManager.AddLog("Enemy was" + getWeapon.name + "selected");
+        StartCoroutine(TurnEnd());
     }
 }
